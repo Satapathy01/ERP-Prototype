@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   CircleUserRoundIcon,
   LogOutIcon,
@@ -23,23 +24,63 @@ import {
 
 import { ThemeSegmentControl } from "./theme-segment-control";
 
+import { useRouter } from "next/navigation";
+
+
+type CurrentUser = {
+  id: string;
+  schoolId: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
 export function UserButton() {
-  // Temporary user until real authentication is connected.
-  const user = {
-    name: "Admin",
-    email: "admin@schoolerp.local",
-  };
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const router = useRouter();
 
-  const initials = user.name
-    .split(" ")
-    .map((name) => name.charAt(0))
-    .join("");
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const response = await fetch("/api/auth/me");
 
-  function handleLogout() {
-    // Later:
-    // await authApi.logout();
-    // router.push("/login");
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to load current user:", error);
+      }
+    }
+
+    loadUser();
+  }, []);
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((name) => name.charAt(0))
+      .join("")
+      .toUpperCase() ?? "?";
+
+  async function handleLogout() {
+  try {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error("Logout failed");
+    }
+
+    router.replace("/login");
+    router.refresh();
+  } catch (error) {
+    console.error("Logout failed:", error);
   }
+}
 
   return (
     <DropdownMenu>
@@ -63,9 +104,12 @@ export function UserButton() {
             </Avatar>
 
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{user.name}</span>
+              <span className="truncate font-medium">
+                {user?.name ?? "Loading..."}
+              </span>
+
               <span className="truncate text-xs text-muted-foreground">
-                {user.email}
+                {user?.email ?? ""}
               </span>
             </div>
           </div>
