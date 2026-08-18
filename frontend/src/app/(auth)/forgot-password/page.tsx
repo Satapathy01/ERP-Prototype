@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Enter your registered email address. We'll send you a
+            Enter your registered email address. We&apos;ll send you a
             one-time password (OTP).
           </p>
         </div>

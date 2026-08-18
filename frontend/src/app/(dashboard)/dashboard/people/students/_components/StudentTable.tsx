@@ -26,7 +26,6 @@ type Student = {
   registrationNumber: string;
   name: string;
   fatherName: string | null;
-  course: string | null;
   status: string;
 };
 
@@ -57,7 +56,7 @@ export function StudentTable({
             <TableRow>
               <TableHead>Registration No</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Course</TableHead>
+              <TableHead>Father Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">
                 Actions
@@ -80,14 +79,12 @@ export function StudentTable({
             ) : (
               students.map((student) => (
                 <TableRow key={student.id}>
-                  <TableCell>
-                    {student.registrationNumber}
-                  </TableCell>
+                  <TableCell>{student.registrationNumber}</TableCell>
 
                   <TableCell>{student.name}</TableCell>
 
                   <TableCell>
-                    {student.course ?? "-"}
+                    {student.fatherName ?? "-"}
                   </TableCell>
 
                   <TableCell>{student.status}</TableCell>

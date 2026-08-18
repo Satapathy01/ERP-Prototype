@@ -14,13 +14,12 @@ export async function GET() {
         createdAt: "desc",
       },
       select: {
-        id: true,
-        registrationNumber: true,
-        name: true,
-        fatherName: true,
-        course: true,
-        status: true,
-      },
+      id: true,
+      registrationNumber: true,
+      name: true,
+      fatherName: true,
+      status: true,
+    },
     });
 
     return NextResponse.json({

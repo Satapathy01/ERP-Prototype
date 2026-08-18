@@ -68,7 +68,7 @@ export default async function StudentDetailsPage({
 
         <div>
           <p className="text-sm text-muted-foreground">
-            Father's Name
+            Father&apos;s Name
           </p>
           <p className="font-medium">
             {student.fatherName ?? "-"}
@@ -76,13 +76,13 @@ export default async function StudentDetailsPage({
         </div>
 
         <div>
-          <p className="text-sm text-muted-foreground">
-            Course
-          </p>
-          <p className="font-medium">
-            {student.course ?? "-"}
-          </p>
-        </div>
+  <p className="text-sm text-muted-foreground">
+    Mother&apos;s Name
+  </p>
+  <p className="font-medium">
+    {student.motherName ?? "-"}
+  </p>
+</div>
 
         <div>
           <p className="text-sm text-muted-foreground">
@@ -107,17 +107,40 @@ export default async function StudentDetailsPage({
         </div>
 
         <div>
-          <p className="text-sm text-muted-foreground">
-            Admission Date
-          </p>
+  <p className="text-sm text-muted-foreground">
+    Student Phone
+  </p>
 
-          <p className="font-medium">
-            {student.dateOfAdmission
-              ? student.dateOfAdmission.toLocaleDateString()
-              : "-"}
-          </p>
-        </div>
+  <p className="font-medium">
+    {student.studentPhone ?? "-"}
+  </p>
+</div>
+         <div>
+  <p className="text-sm text-muted-foreground">
+    Gender
+  </p>
+  <p className="font-medium">
+    {student.gender ?? "-"}
+  </p>
+</div>
 
+<div>
+  <p className="text-sm text-muted-foreground">
+    Blood Group
+  </p>
+  <p className="font-medium">
+    {student.bloodGroup ?? "-"}
+  </p>
+</div>
+
+<div>
+  <p className="text-sm text-muted-foreground">
+    Parent Phone
+  </p>
+  <p className="font-medium">
+    {student.parentPhone ?? "-"}
+  </p>
+</div>
         <div>
           <p className="text-sm text-muted-foreground">
             Created At

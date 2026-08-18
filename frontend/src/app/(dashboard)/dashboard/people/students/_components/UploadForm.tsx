@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-
-import { Loader2, FileSpreadsheet } from "lucide-react";
+import {
+  FileSpreadsheet,
+  Loader2,
+} from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -23,42 +25,74 @@ type UploadFormProps = {
   onSuccess?: () => void;
 };
 
-export function UploadForm({ onSuccess }: UploadFormProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export function UploadForm({
+  onSuccess,
+}: UploadFormProps) {
+  const fileInputRef =
+    useRef<HTMLInputElement>(null);
 
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] =
+    useState<File | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [result, setResult] = useState<ImportResult | null>(null);
+  const [result, setResult] =
+    useState<ImportResult | null>(null);
 
   async function handleImport() {
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     setLoading(true);
 
     try {
       const formData = new FormData();
-
       formData.append("file", file);
 
-      // Change this if your API is different
-      formData.append("schoolId", process.env.NEXT_PUBLIC_SCHOOL_ID ?? "");
+      const schoolId =
+        process.env.NEXT_PUBLIC_SCHOOL_ID;
 
-      const response = await fetch("/api/import/students", {
-        method: "POST",
-        body: formData,
-      });
+      if (schoolId) {
+        formData.append(
+          "schoolId",
+          schoolId,
+        );
+      }
+
+      const response = await fetch(
+        "/api/import/students",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const json = await response.json();
 
       if (!response.ok) {
-        throw new Error(json.message);
+        throw new Error(
+          json.message ??
+            "Failed to import students.",
+        );
       }
 
       setResult(json.data);
+
+      onSuccess?.();
+
+      setFile(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Student import failed:",
+        error,
+      );
+
       alert("Import failed.");
     } finally {
       setLoading(false);
@@ -67,14 +101,18 @@ export function UploadForm({ onSuccess }: UploadFormProps) {
 
   return (
     <div className="space-y-6">
-
       <Input
         ref={fileInputRef}
         type="file"
         accept=".xlsx"
-        onChange={(e) => {
-          if (e.target.files?.length) {
-            setFile(e.target.files[0]);
+        disabled={loading}
+        onChange={(event) => {
+          const selectedFile =
+            event.target.files?.[0];
+
+          if (selectedFile) {
+            setFile(selectedFile);
+            setResult(null);
           }
         }}
       />
@@ -84,7 +122,9 @@ export function UploadForm({ onSuccess }: UploadFormProps) {
           <FileSpreadsheet className="h-5 w-5 text-green-600" />
 
           <div className="flex-1">
-            <p className="font-medium">{file.name}</p>
+            <p className="font-medium">
+              {file.name}
+            </p>
 
             <p className="text-xs text-muted-foreground">
               {(file.size / 1024).toFixed(2)} KB
@@ -94,6 +134,7 @@ export function UploadForm({ onSuccess }: UploadFormProps) {
       )}
 
       <Button
+        type="button"
         disabled={!file || loading}
         onClick={handleImport}
         className="w-full"
@@ -109,9 +150,7 @@ export function UploadForm({ onSuccess }: UploadFormProps) {
       </Button>
 
       {result && (
-        <ImportSummary
-          result={result}
-        />
+        <ImportSummary result={result} />
       )}
     </div>
   );

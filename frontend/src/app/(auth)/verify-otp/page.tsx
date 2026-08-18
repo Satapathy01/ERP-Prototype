@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function VerifyOtpPage() {
+function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -39,7 +39,9 @@ export default function VerifyOtpPage() {
       }
 
       router.push(
-        `/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`
+        `/reset-password?email=${encodeURIComponent(
+          email
+        )}&otp=${otp}`
       );
     } catch {
       setError("Something went wrong.");
@@ -94,5 +96,21 @@ export default function VerifyOtpPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            Loading...
+          </p>
+        </main>
+      }
+    >
+      <VerifyOtpForm />
+    </Suspense>
   );
 }

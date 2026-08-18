@@ -1,7 +1,30 @@
-export interface StudentListItem {
-  id: string;
-  regNo: string;
+import { Gender, StudentStatus } from "@prisma/client";
+
+export interface StudentFormData {
   name: string;
-  course: string | null;
-  status: string;
+
+  fatherName?: string;
+  motherName?: string;
+
+  gender?: Gender;
+
+  dateOfBirth?: Date;
+
+  bloodGroup?: string;
+
+  studentPhone?: string;
+  parentPhone?: string;
+
+  email?: string;
+
+  address?: string;
+  city?: string;
+  state?: string;
+  pinCode?: string;
+
+  aadhaarNumber?: string;
+
+  photoUrl?: string;
+
+  status?: StudentStatus;
 }

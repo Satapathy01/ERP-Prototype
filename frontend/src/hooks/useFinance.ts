@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type {
   CreateFeePaymentInput,
   UpdateFeePaymentInput,
-} from "@/modules/finance";
+} from "@/modules/finance/services";
 
 export interface FinanceQuery {
   page?: number;
@@ -17,151 +17,303 @@ export interface FinanceQuery {
   to?: string;
 }
 
-export function useFinance(initialQuery: FinanceQuery = {}) {
-  const [payments, setPayments] = useState<any[]>([]);
-  const [pagination, setPagination] = useState<any>(null);
+export interface FinancePayment {
+  id: string;
+  receiptNumber?: string | null;
+  amount: number;
+  paymentMethod?: string | null;
+  status?: string | null;
+  paidAt?: string | null;
+  remarks?: string | null;
+
+  admission?: {
+    id: string;
+    admissionNumber?: string | null;
+
+    student?: {
+      id: string;
+      name?: string | null;
+      registrationNumber?: string | null;
+      photo?: string | null;
+    } | null;
+  } | null;
+}
+
+export interface FinancePagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+interface FinanceApiResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    payments: FinancePayment[];
+    pagination: FinancePagination;
+  };
+}
+
+export function useFinance(
+  initialQuery: FinanceQuery = {},
+) {
+  const [payments, setPayments] = useState<
+    FinancePayment[]
+  >([]);
+
+  const [pagination, setPagination] =
+    useState<FinancePagination | null>(null);
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [error, setError] = useState<string | null>(
+    null,
+  );
 
   const [query, setQuery] =
     useState<FinanceQuery>(initialQuery);
 
+  /* ---------------------------------------------------------------------- */
+  /* Build Query String                                                     */
+  /* ---------------------------------------------------------------------- */
+
   const buildQueryString = useCallback(() => {
     const params = new URLSearchParams();
 
-    Object.entries(query).forEach(([key, value]) => {
-      if (
-        value !== undefined &&
-        value !== null &&
-        value !== ""
-      ) {
-        params.append(key, String(value));
-      }
-    });
+    Object.entries(query).forEach(
+      ([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== ""
+        ) {
+          params.set(key, String(value));
+        }
+      },
+    );
 
     return params.toString();
   }, [query]);
 
-  // Fetch Payments
-  const fetchPayments = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  /* ---------------------------------------------------------------------- */
+  /* Fetch Payments                                                         */
+  /* ---------------------------------------------------------------------- */
 
-      const res = await fetch(
-        `/api/finance?${buildQueryString()}`,
+  const fetchPayments = useCallback(
+    async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const queryString =
+          buildQueryString();
+
+        const url = queryString
+          ? `/api/finance?${queryString}`
+          : "/api/finance";
+
+        const response = await fetch(url, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const json =
+          (await response.json()) as FinanceApiResponse;
+
+        if (!response.ok || !json.success) {
+          throw new Error(
+            json.message ??
+              "Failed to load payments.",
+          );
+        }
+
+        setPayments(
+          json.data?.payments ?? [],
+        );
+
+        setPagination(
+          json.data?.pagination ?? null,
+        );
+      } catch (error: unknown) {
+        console.error(
+          "Failed to load payments:",
+          error,
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load payments.",
+        );
+
+        setPayments([]);
+        setPagination(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [buildQueryString],
+  );
+
+  /* ---------------------------------------------------------------------- */
+  /* Get Single Payment                                                     */
+  /* ---------------------------------------------------------------------- */
+
+  const getPayment = useCallback(
+    async (id: string) => {
+      const response = await fetch(
+        `/api/finance/${id}`,
         {
           credentials: "include",
-        }
+          cache: "no-store",
+        },
       );
 
-      const json = await res.json();
+      const json = await response.json();
 
-      if (!res.ok) {
-        throw new Error(json.message);
+      if (!response.ok || !json.success) {
+        throw new Error(
+          json.message ??
+            "Failed to load payment.",
+        );
       }
 
-      setPayments(json.data);
-      setPagination(json.pagination);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [buildQueryString]);
+      return json.data as FinancePayment;
+    },
+    [],
+  );
 
-  // Get Single Payment
-  const getPayment = async (id: string) => {
-    const res = await fetch(`/api/finance/${id}`, {
-      credentials: "include",
-    });
+  /* ---------------------------------------------------------------------- */
+  /* Create Payment                                                         */
+  /* ---------------------------------------------------------------------- */
 
-    const json = await res.json();
+  const createPayment = useCallback(
+    async (
+      data: CreateFeePaymentInput,
+    ) => {
+      const response = await fetch(
+        "/api/finance",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      );
 
-    if (!res.ok) {
-      throw new Error(json.message);
-    }
+      const json = await response.json();
 
-    return json.data;
-  };
+      if (!response.ok || !json.success) {
+        throw new Error(
+          json.message ??
+            "Failed to create payment.",
+        );
+      }
 
-  // Create Payment
-  const createPayment = async (
-    data: CreateFeePaymentInput
-  ) => {
-    const res = await fetch("/api/finance", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+      await fetchPayments();
 
-    const json = await res.json();
+      return json.data as FinancePayment;
+    },
+    [fetchPayments],
+  );
 
-    if (!res.ok) {
-      throw new Error(json.message);
-    }
+  /* ---------------------------------------------------------------------- */
+  /* Update Payment                                                         */
+  /* ---------------------------------------------------------------------- */
 
-    await fetchPayments();
+  const updatePayment = useCallback(
+    async (
+      id: string,
+      data: UpdateFeePaymentInput,
+    ) => {
+      const response = await fetch(
+        `/api/finance/${id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      );
 
-    return json.data;
-  };
+      const json = await response.json();
 
-  // Update Payment
-  const updatePayment = async (
-    id: string,
-    data: UpdateFeePaymentInput
-  ) => {
-    const res = await fetch(`/api/finance/${id}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+      if (!response.ok || !json.success) {
+        throw new Error(
+          json.message ??
+            "Failed to update payment.",
+        );
+      }
 
-    const json = await res.json();
+      await fetchPayments();
 
-    if (!res.ok) {
-      throw new Error(json.message);
-    }
+      return json.data as FinancePayment;
+    },
+    [fetchPayments],
+  );
 
-    await fetchPayments();
+  /* ---------------------------------------------------------------------- */
+  /* Delete Payment                                                         */
+  /* ---------------------------------------------------------------------- */
 
-    return json.data;
-  };
+  const deletePayment = useCallback(
+    async (id: string) => {
+      const response = await fetch(
+        `/api/finance/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
 
-  // Delete Payment
-  const deletePayment = async (id: string) => {
-    const res = await fetch(`/api/finance/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+      const json = await response.json();
 
-    const json = await res.json();
+      if (!response.ok || !json.success) {
+        throw new Error(
+          json.message ??
+            "Failed to delete payment.",
+        );
+      }
 
-    if (!res.ok) {
-      throw new Error(json.message);
-    }
+      await fetchPayments();
+    },
+    [fetchPayments],
+  );
 
-    await fetchPayments();
-  };
+  /* ---------------------------------------------------------------------- */
+  /* Initial / Query Change Loading                                         */
+  /* ---------------------------------------------------------------------- */
 
   useEffect(() => {
+    // Payment loading is an intentional external side effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPayments();
   }, [fetchPayments]);
+
+  /* ---------------------------------------------------------------------- */
+  /* Return                                                                 */
+  /* ---------------------------------------------------------------------- */
 
   return {
     payments,
     pagination,
     loading,
     error,
+
     query,
     setQuery,
+
     refresh: fetchPayments,
+
     getPayment,
     createPayment,
     updatePayment,

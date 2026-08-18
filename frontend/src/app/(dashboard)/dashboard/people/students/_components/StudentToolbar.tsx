@@ -1,12 +1,10 @@
 "use client";
 
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
-import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
 import { ImportDialog } from "./ImportDialog";
-
 import { AddStudentDialog } from "./AddStudentDialog";
 
 interface StudentToolbarProps {
@@ -31,7 +29,6 @@ export function StudentToolbar({
 
       {/* Toolbar */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-
         <form
           action="/dashboard/people/students"
           className="relative w-full max-w-sm"

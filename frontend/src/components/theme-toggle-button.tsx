@@ -1,37 +1,54 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button } from "~/components/ui/button"
-import { SunIcon, MoonIcon, MoonStarIcon } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useSyncExternalStore } from "react";
+import { Button } from "~/components/ui/button";
+import { SunIcon, MoonStarIcon } from "lucide-react";
+import { useTheme } from "next-themes";
+
+function subscribe() {
+  return () => {};
+}
+
+function getSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
 
 export const ThemeToggleButton = () => {
-  const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
+  const { resolvedTheme, setTheme } = useTheme();
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   if (!mounted) {
-    return null
+    return null;
   }
+
+  const isDark = resolvedTheme === "dark";
 
   return (
     <Button
       variant="outline"
       size="icon-sm"
       className="relative"
-      disabled={!mounted}
       onClick={() =>
-        setTheme(resolvedTheme === "dark" ? "light" : "dark")
+        setTheme(isDark ? "light" : "dark")
       }
       aria-label={
-        resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+        isDark
+          ? "Switch to light mode"
+          : "Switch to dark mode"
       }
     >
       <SunIcon className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+
       <MoonStarIcon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
     </Button>
-  )
-}
+  );
+};

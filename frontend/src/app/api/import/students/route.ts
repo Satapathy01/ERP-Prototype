@@ -19,20 +19,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Temporary: replace with real schoolId later from auth/session
-    const auth = await getAuthenticationUser();
+const auth = await getAuthenticationUser();
 
-      if (!auth) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
-      }
+if (!auth) {
+  return NextResponse.json(
+    { error: "Unauthorized" },
+    { status: 401 }
+  );
+}
 
 const schoolId = auth.schoolId;
+const importedById = auth.userId;
 
-    const result = await importStudents(file, schoolId);
+const buffer = Buffer.from(await file.arrayBuffer());
 
+const result = await importStudents(
+  buffer,
+  schoolId,
+  importedById,
+  file.name
+);
     return NextResponse.json({
       success: true,
       message: "Students imported successfully.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -14,16 +14,176 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 
+interface Course {
+  id: string;
+  code: string;
+  name: string;
+
+  durationMonths: number;
+
+  admissionFee: number;
+  monthlyFee: number;
+  certificateFee: number;
+  totalFee: number;
+
+  installmentCount: number;
+}
+
 export function AddStudentDialog() {
   const [open, setOpen] = useState(false);
-  const [registrationNumber, setRegistrationNumber] = useState("");
+
+  // --------------------------------------------------
+  // Student
+  // --------------------------------------------------
+
   const [name, setName] = useState("");
   const [fatherName, setFatherName] = useState("");
-  const [course, setCourse] = useState("");
+  const [motherName, setMotherName] = useState("");
+  const [studentPhone, setStudentPhone] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
-  const [dateOfAdmission, setDateOfAdmission] = useState("");
   const [status, setStatus] = useState("ACTIVE");
+
+  // --------------------------------------------------
+  // Course
+  // --------------------------------------------------
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [courseId, setCourseId] = useState("");
+
+  const [coursesLoading, setCoursesLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // --------------------------------------------------
+  // Load courses when dialog opens
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!open) return;
+
+    async function loadCourses() {
+      try {
+        setCoursesLoading(true);
+
+        const response = await fetch("/api/courses");
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ?? "Failed to load courses."
+          );
+        }
+
+        setCourses(result.data ?? []);
+      } catch (error) {
+        console.error("Course loading error:", error);
+
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Failed to load courses."
+        );
+      } finally {
+        setCoursesLoading(false);
+      }
+    }
+
+    loadCourses();
+  }, [open]);
+
+  // --------------------------------------------------
+  // Selected course
+  // --------------------------------------------------
+
+  const selectedCourse = courses.find(
+    (course) => course.id === courseId
+  );
+
+  // --------------------------------------------------
+  // Submit
+  // --------------------------------------------------
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!name.trim()) {
+      alert("Please enter student name.");
+      return;
+    }
+
+    if (!courseId) {
+      alert("Please select a course.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/students", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          name,
+          fatherName,
+          motherName,
+          studentPhone,
+          parentPhone,
+          email,
+          dateOfBirth,
+          status,
+
+          // Selected course
+          courseId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message ?? "Failed to create student."
+        );
+      }
+
+      // ------------------------------------------------
+      // Reset
+      // ------------------------------------------------
+
+      setName("");
+      setFatherName("");
+      setMotherName("");
+      setStudentPhone("");
+      setParentPhone("");
+      setEmail("");
+      setDateOfBirth("");
+      setStatus("ACTIVE");
+      setCourseId("");
+
+      setOpen(false);
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Create student error:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to create student."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -31,143 +191,259 @@ export function AddStudentDialog() {
         <Button>+ Add Student</Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Add Student</DialogTitle>
+
           <DialogDescription>
-            Enter the student's information to register them in the ERP.
+            Register a new student and assign a course.
           </DialogDescription>
         </DialogHeader>
 
         <form
-          className="grid gap-4 py-4"
-          onSubmit={async (e) => {
-                  e.preventDefault();
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
+          {/* ------------------------------------------ */}
+          {/* Student Name */}
+          {/* ------------------------------------------ */}
 
-                  try {
-                    setLoading(true);
+          <div className="space-y-2">
+            <Label>Student Name</Label>
 
-                    const response = await fetch("/api/students", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        registrationNumber,
-                        name,
-                        fatherName,
-                        course,
-                        dateOfBirth,
-                        dateOfAdmission,
-                        status,
-                      }),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                      throw new Error(result.message);
-                    }
-
-                    // Reset form
-                    setRegistrationNumber("");
-                    setName("");
-                    setFatherName("");
-                    setCourse("");
-                    setDateOfBirth("");
-                    setDateOfAdmission("");
-                    setStatus("ACTIVE");
-
-                    // Close dialog
-                    setOpen(false);
-
-                    // Refresh student list
-                    window.location.reload();
-                  } catch (error) {
-                    alert(
-                      error instanceof Error
-                        ? error.message
-                        : "Failed to create student."
-                    );
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                >
-          <div className="grid gap-2">
-            <Label htmlFor="registrationNumber">Registration Number</Label>
             <Input
-              id="registrationNumber"
-              value={registrationNumber}
-              onChange={(e) => setRegistrationNumber(e.target.value)}
-              placeholder="Enter registration number"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="name">Student Name</Label>
-            <Input
-              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter student name"
+              required
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="fatherName">Father's Name</Label>
+          {/* ------------------------------------------ */}
+          {/* Father */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2">
+            <Label>Father&apos;s Name</Label>
+
             <Input
-              id="fatherName"
               value={fatherName}
-              onChange={(e) => setFatherName(e.target.value)}
+              onChange={(e) =>
+                setFatherName(e.target.value)
+              }
               placeholder="Enter father's name"
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="course">Course</Label>
+          {/* ------------------------------------------ */}
+          {/* Mother */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2">
+            <Label>Mother&apos;s Name</Label>
+
             <Input
-              id="course"
-              value={course}
-              onChange={(e) => setCourse(e.target.value)}
-              placeholder="Enter course"
+              value={motherName}
+              onChange={(e) =>
+                setMotherName(e.target.value)
+              }
+              placeholder="Enter mother's name"
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="dateOfBirth">Date of Birth</Label>
+          {/* ------------------------------------------ */}
+          {/* DOB */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2">
+            <Label>Date of Birth</Label>
+
             <Input
-              id="dateOfBirth"
               type="date"
               value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
+              onChange={(e) =>
+                setDateOfBirth(e.target.value)
+              }
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="dateOfAdmission">Admission Date</Label>
+          {/* ------------------------------------------ */}
+          {/* Student Phone */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2">
+            <Label>Student Phone</Label>
+
             <Input
-              id="dateOfAdmission"
-              type="date"
-              value={dateOfAdmission}
-              onChange={(e) => setDateOfAdmission(e.target.value)}
+              value={studentPhone}
+              onChange={(e) =>
+                setStudentPhone(e.target.value)
+              }
+              placeholder="Enter student phone"
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="status">Status</Label>
+          {/* ------------------------------------------ */}
+          {/* Parent Phone */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2">
+            <Label>Parent Phone</Label>
+
+            <Input
+              value={parentPhone}
+              onChange={(e) =>
+                setParentPhone(e.target.value)
+              }
+              placeholder="Enter parent phone"
+            />
+          </div>
+
+          {/* ------------------------------------------ */}
+          {/* Email */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2 md:col-span-2">
+            <Label>Email</Label>
+
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+              placeholder="Enter email"
+            />
+          </div>
+
+          {/* ------------------------------------------ */}
+          {/* COURSE */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2 md:col-span-2">
+            <Label>Course</Label>
+
             <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={courseId}
+              onChange={(e) =>
+                setCourseId(e.target.value)
+              }
+              disabled={coursesLoading}
+              required
+              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="ARCHIVED">ARCHIVED</option>
+              <option value="">
+                {coursesLoading
+                  ? "Loading courses..."
+                  : "Select Course"}
+              </option>
+
+              {courses.map((course) => (
+                <option
+                  key={course.id}
+                  value={course.id}
+                >
+                  {course.code} — {course.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          {/* ------------------------------------------ */}
+          {/* COURSE FEE PREVIEW */}
+          {/* ------------------------------------------ */}
+
+          {selectedCourse && (
+            <div className="md:col-span-2 rounded-lg border bg-muted/20 p-4">
+              <div className="mb-3">
+                <h3 className="font-semibold">
+                  {selectedCourse.code}
+                </h3>
+
+                <p className="text-sm text-muted-foreground">
+                  {selectedCourse.name}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Admission Fee
+                  </p>
+
+                  <p className="font-semibold">
+                    ₹
+                    {selectedCourse.admissionFee.toLocaleString(
+                      "en-IN"
+                    )}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Monthly Fee
+                  </p>
+
+                  <p className="font-semibold">
+                    ₹
+                    {selectedCourse.monthlyFee.toLocaleString(
+                      "en-IN"
+                    )}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Duration
+                  </p>
+
+                  <p className="font-semibold">
+                    {selectedCourse.durationMonths} months
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Total Fee
+                  </p>
+
+                  <p className="font-semibold">
+                    ₹
+                    {selectedCourse.totalFee.toLocaleString(
+                      "en-IN"
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ------------------------------------------ */}
+          {/* STATUS */}
+          {/* ------------------------------------------ */}
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+
+            <select
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value)
+              }
+              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="INACTIVE">INACTIVE</option>
+              <option value="ALUMNI">ALUMNI</option>
+              <option value="SUSPENDED">SUSPENDED</option>
+            </select>
+          </div>
+
+          {/* ------------------------------------------ */}
+          {/* ACTIONS */}
+          {/* ------------------------------------------ */}
+
+          <div className="flex justify-end gap-2 pt-4 md:col-span-2">
             <Button
               type="button"
               variant="outline"
@@ -176,7 +452,14 @@ export function AddStudentDialog() {
               Cancel
             </Button>
 
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                coursesLoading ||
+                !courseId
+              }
+            >
               {loading ? "Saving..." : "Save Student"}
             </Button>
           </div>

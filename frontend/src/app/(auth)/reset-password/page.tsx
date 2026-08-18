@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -93,9 +93,7 @@ export default function ResetPasswordPage() {
 
           <button
             type="button"
-            onClick={() =>
-              setShowPassword(!showPassword)
-            }
+            onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2"
           >
             {showPassword ? (
@@ -108,14 +106,10 @@ export default function ResetPasswordPage() {
 
         <div className="relative">
           <input
-            type={
-              showConfirmPassword ? "text" : "password"
-            }
+            type={showConfirmPassword ? "text" : "password"}
             placeholder="Confirm Password"
             value={confirmPassword}
-            onChange={(e) =>
-              setConfirmPassword(e.target.value)
-            }
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full rounded-md border p-3 pr-10"
             required
           />
@@ -123,9 +117,7 @@ export default function ResetPasswordPage() {
           <button
             type="button"
             onClick={() =>
-              setShowConfirmPassword(
-                !showConfirmPassword
-              )
+              setShowConfirmPassword(!showConfirmPassword)
             }
             className="absolute right-3 top-1/2 -translate-y-1/2"
           >
@@ -152,5 +144,21 @@ export default function ResetPasswordPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            Loading...
+          </p>
+        </main>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

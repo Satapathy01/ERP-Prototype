@@ -33,11 +33,33 @@ export function mapStudentImport(
   return {
     schoolId,
     registrationNumber: String(student["Reg.No"]).trim(),
+
     name: student["Name of Students"].trim(),
+
     fatherName: student["Father's Name"] ?? null,
-    course: student.Course?.trim() ?? null,
+    motherName: null,
+
+    gender: undefined,
+
     dateOfBirth: parseDate(student["D.O.B"]),
-    dateOfAdmission: parseDate(student["D.O.A"]),
+
+    bloodGroup: null,
+
+    studentPhone: null,
+    parentPhone: null,
+
+    email: null,
+
+    address: null,
+    city: null,
+    state: null,
+    pinCode: null,
+
+    aadhaarNumber: null,
+
+    photoUrl: null,
+
+    status: "ACTIVE" as const,
   };
 }
 
