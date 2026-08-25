@@ -1,9 +1,11 @@
 import { prisma } from "~/lib/prisma";
 import type { CourseData } from "../schemas/course.schema";
 
-
 export class CourseService {
-  async getByCode(schoolId: string, code: string) {
+  async getByCode(
+    schoolId: string,
+    code: string,
+  ) {
     return prisma.course.findFirst({
       where: {
         schoolId,
@@ -12,30 +14,54 @@ export class CourseService {
     });
   }
 
-  async create(schoolId: string, data: CourseData) {
+  async create(
+    schoolId: string,
+    data: CourseData,
+  ) {
     const totalFee =
       data.admissionFee +
-      data.monthlyFee * data.installmentCount -
+      data.monthlyFee *
+        data.installmentCount -
       data.discount;
 
     return prisma.course.create({
       data: {
         schoolId,
+
         code: data.code,
         name: data.name,
-        durationMonths: data.durationMonths,
-        admissionFee: data.admissionFee,
-        monthlyFee: data.monthlyFee,
-        installmentCount: data.installmentCount,
+
+        durationMonths:
+          data.durationMonths,
+
+        admissionFee:
+          data.admissionFee,
+
+        monthlyFee:
+          data.monthlyFee,
+
+        certificateFee:
+          data.certificateFee,
+
+        installmentCount:
+          data.installmentCount,
+
         totalFee,
-        isActive: data.isActive,
+
+        isActive:
+          data.isActive,
       },
     });
   }
 
-  async getAll(schoolId: string) {
+  async getAll(
+    schoolId: string,
+  ) {
     return prisma.course.findMany({
-      where: { schoolId },
+      where: {
+        schoolId,
+      },
+
       orderBy: {
         createdAt: "desc",
       },
@@ -44,36 +70,62 @@ export class CourseService {
 
   async getById(id: string) {
     return prisma.course.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
     });
   }
 
-  async update(id: string, data: CourseData) {
+  async update(
+    id: string,
+    data: CourseData,
+  ) {
     const totalFee =
       data.admissionFee +
-      data.monthlyFee * data.installmentCount -
+      data.monthlyFee *
+        data.installmentCount -
       data.discount;
 
     return prisma.course.update({
-      where: { id },
+      where: {
+        id,
+      },
+
       data: {
         code: data.code,
         name: data.name,
-        durationMonths: data.durationMonths,
-        admissionFee: data.admissionFee,
-        monthlyFee: data.monthlyFee,
-        installmentCount: data.installmentCount,
+
+        durationMonths:
+          data.durationMonths,
+
+        admissionFee:
+          data.admissionFee,
+
+        monthlyFee:
+          data.monthlyFee,
+
+        certificateFee:
+          data.certificateFee,
+
+        installmentCount:
+          data.installmentCount,
+
         totalFee,
-        isActive: data.isActive,
+
+        isActive:
+          data.isActive,
       },
     });
   }
 
   async delete(id: string) {
     return prisma.course.delete({
-      where: { id },
+      where: {
+        id,
+      },
     });
   }
 }
 
-export const courseService = new CourseService();
+export const courseService =
+  new CourseService();

@@ -1,18 +1,23 @@
-import type { NavCategory } from "~/app/(dashboard)/_components/nav-main"
+import type { NavCategory } from "~/app/(dashboard)/_components/nav-main";
 
 import {
   LayoutDashboard,
   FileBarChart,
   Layers,
   ClipboardList,
+  FileCheck2,
   Users,
   Wallet,
   Shield,
   User,
   Settings2,
-} from "lucide-react"
+} from "lucide-react";
 
 export const sidebarNavCategories: NavCategory[] = [
+  /* ---------------------------------------------------------------------- */
+  /* Dashboard                                                              */
+  /* ---------------------------------------------------------------------- */
+
   {
     label: "Dashboard",
     accentDot: "bg-violet-500",
@@ -31,6 +36,10 @@ export const sidebarNavCategories: NavCategory[] = [
     ],
   },
 
+  /* ---------------------------------------------------------------------- */
+  /* Academics                                                              */
+  /* ---------------------------------------------------------------------- */
+
   {
     label: "Academics",
     accentDot: "bg-emerald-500",
@@ -45,8 +54,17 @@ export const sidebarNavCategories: NavCategory[] = [
         url: "/dashboard/academics/attendance",
         icon: ClipboardList,
       },
+      {
+        title: "Examinations",
+        url: "/dashboard/examinations",
+        icon: FileCheck2,
+      },
     ],
   },
+
+  /* ---------------------------------------------------------------------- */
+  /* People                                                                 */
+  /* ---------------------------------------------------------------------- */
 
   {
     label: "People",
@@ -60,6 +78,10 @@ export const sidebarNavCategories: NavCategory[] = [
     ],
   },
 
+  /* ---------------------------------------------------------------------- */
+  /* Operations                                                             */
+  /* ---------------------------------------------------------------------- */
+
   {
     label: "Operations",
     accentDot: "bg-orange-500",
@@ -72,6 +94,10 @@ export const sidebarNavCategories: NavCategory[] = [
     ],
   },
 
+  /* ---------------------------------------------------------------------- */
+  /* Administration                                                         */
+  /* ---------------------------------------------------------------------- */
+
   {
     label: "Administration",
     accentDot: "bg-zinc-400",
@@ -81,9 +107,14 @@ export const sidebarNavCategories: NavCategory[] = [
         url: "/dashboard/admin/users-access/users",
         icon: Shield,
       },
+      {
+        title: "Rules",
+        url: "/dashboard/admin/rules",
+        icon: Settings2,
+      },
     ],
   },
-]
+];
 
 export const sidebarSecondaryNav = [
   {
@@ -96,4 +127,4 @@ export const sidebarSecondaryNav = [
     url: "/dashboard/settings",
     icon: <Settings2 className="size-4" />,
   },
-]
+];

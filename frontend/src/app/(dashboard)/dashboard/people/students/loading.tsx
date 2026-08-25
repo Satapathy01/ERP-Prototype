@@ -1,4 +1,4 @@
-import { StudentsLoading } from "./_components/StudentsLoading";
+import { StudentsLoading } from "./_components/Student/StudentsLoading";
 
 export default function Loading() {
   return (

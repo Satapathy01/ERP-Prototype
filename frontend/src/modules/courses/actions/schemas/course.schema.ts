@@ -27,6 +27,11 @@ export const courseSchema = z.object({
     .number()
     .min(0, "Monthly fee cannot be negative"),
 
+  certificateFee: z.coerce
+    .number()
+    .positive("Certificate fee must be greater than 0")
+    .default(500),
+
   installmentCount: z.coerce
     .number()
     .int()
@@ -44,12 +49,8 @@ export const courseSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-/**
- * Input type (React Hook Form)
- */
-export type CourseSchema = z.input<typeof courseSchema>;
+export type CourseSchema =
+  z.input<typeof courseSchema>;
 
-/**
- * Output type (Validated data after safeParse)
- */
-export type CourseData = z.output<typeof courseSchema>;
+export type CourseData =
+  z.output<typeof courseSchema>;

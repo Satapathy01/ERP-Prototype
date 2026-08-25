@@ -1,8 +1,8 @@
 import { getAuthenticationUser } from "~/modules/auth/auth.helper";
 import { getStudents } from "~/modules/student";
 
-import { StudentTable } from "./_components/StudentTable";
-import { StudentToolbar } from "./_components/StudentToolbar";
+import { StudentTable } from "./_components/Student/StudentTable";
+import { StudentToolbar } from "./_components/Student/StudentToolbar";
 
 interface StudentsPageProps {
   searchParams: Promise<{

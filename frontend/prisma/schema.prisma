@@ -145,6 +145,9 @@ model School {
 
   importJobs ImportJob[]
 
+  campusEntries     CampusEntry[]
+  attendanceRecords AttendanceRecord[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -205,10 +208,13 @@ model Student {
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  admissions Admission[]
+  admissions   Admission[]
+  certificates Certificate[]
+  importRows   ImportRow[]
+  documents    Document[]
 
-  importRows ImportRow[]
-  documents  Document[]
+  campusEntries     CampusEntry[]
+  attendanceRecords AttendanceRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -323,6 +329,10 @@ model Course {
 
   feeSchedules FeeSchedule[]
 
+  exams Exam[]
+
+  attendanceRecords AttendanceRecord[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -391,6 +401,73 @@ enum BatchShift {
   EVENING
 }
 
+enum ExamSessionStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ExamType {
+  THEORY
+  PRACTICAL
+}
+
+enum ExamStatus {
+  DRAFT
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ExamRegistrationStatus {
+  PENDING
+  ELIGIBLE
+  REGISTERED
+  COMPLETED
+  FAILED
+  PASSED
+}
+
+enum EligibilityStatus {
+  PENDING
+  ELIGIBLE
+  NOT_ELIGIBLE
+  OVERRIDDEN
+}
+
+enum ResultStatus {
+  PENDING
+  PASS
+  FAIL
+  ABSENT
+  WITHHELD
+}
+
+enum CertificateStatus {
+  NOT_CREATED
+  CREATED
+  READY_FOR_COLLECTION
+  ISSUED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum AttendanceSource {
+  MANUAL
+  CLASS
+  CAMPUS_SCAN
+}
+
 model Batch {
   id String @id @default(uuid())
 
@@ -421,6 +498,8 @@ model Batch {
   teacher Teacher? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
 
   admissions Admission[]
+
+  attendanceRecords AttendanceRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -475,9 +554,10 @@ model Admission {
 
   batch Batch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
 
-  feePayments FeePayment[]
-  feeLedger   FeeLedger[]
-  documents   Document[]
+  feePayments  FeePayment[]
+  feeLedger    FeeLedger[]
+  documents    Document[]
+  certificates Certificate[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -672,4 +752,378 @@ model ImportHeaderMemory {
 
   @@unique([schoolId, normalizedHeader])
   @@index([schoolId])
+}
+
+model ExamRuleSet {
+  id String @id @default(uuid())
+
+  schoolId String
+
+  name        String
+  description String?
+
+  version Int @default(1)
+
+  /**
+   * Dynamic examination rules.
+   * Example:
+   * {
+   * "payment": {
+   * "required": true,
+   * "minimumCompletionPercentage": 100
+   * },
+   * "attendance": {
+   * "required": true,
+   * "minimumPercentage": 20,
+   * "scope": "EVERY_COURSE"
+   * },
+   * "theory": {
+   * "required": true,
+   * "mustPass": true
+   * },
+   * "practical": {
+   * "required": true,
+   * "mustPass": true
+   * }
+   * }
+   */
+  rules Json
+
+  isActive Boolean @default(false)
+
+  effectiveFrom  DateTime?
+  effectiveUntil DateTime?
+
+  createdBy  String?
+  approvedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions ExamSession[]
+
+  @@unique([schoolId, name, version])
+  @@index([schoolId])
+  @@index([schoolId, isActive])
+}
+
+model ExamSession {
+  id       String @id @default(uuid())
+  schoolId String
+
+  name         String
+  code         String?
+  academicYear String?
+
+  status ExamSessionStatus @default(DRAFT)
+
+  ruleSetId String
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ruleSet ExamRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Restrict)
+
+  exams Exam[]
+
+  registrations ExamRegistration[]
+
+  eligibilities ExamEligibility[]
+
+  certificates Certificate[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId])
+  @@index([ruleSetId])
+}
+
+model Exam {
+  id String @id @default(uuid())
+
+  sessionId String
+  courseId  String
+
+  name String
+  code String?
+
+  type ExamType
+
+  status ExamStatus @default(DRAFT)
+
+  maxMarks  Decimal @db.Decimal(10, 2)
+  passMarks Decimal @db.Decimal(10, 2)
+
+  examDate  DateTime?
+  startTime DateTime?
+  endTime   DateTime?
+
+  venue String?
+
+  instructions String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  registrations ExamRegistration[]
+
+  @@unique([sessionId, code])
+  @@index([sessionId])
+  @@index([courseId])
+  @@index([type])
+  @@index([status])
+}
+
+model ExamRegistration {
+  id String @id @default(uuid())
+
+  sessionId String
+  examId    String
+
+  studentId   String
+  admissionId String?
+
+  status ExamRegistrationStatus @default(PENDING)
+
+  registeredAt DateTime?
+  completedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  result ExamResult?
+
+  eligibility ExamEligibility?
+
+  @@unique([sessionId, examId, studentId])
+  @@index([studentId])
+  @@index([admissionId])
+  @@index([sessionId])
+  @@index([examId])
+  @@index([status])
+}
+
+model ExamResult {
+  id String @id @default(uuid())
+
+  registrationId String @unique
+
+  marksObtained Decimal? @db.Decimal(10, 2)
+
+  grade      String?
+  gradePoint Decimal? @db.Decimal(5, 2)
+
+  percentage Decimal? @db.Decimal(5, 2)
+
+  status ResultStatus @default(PENDING)
+
+  remarks String?
+
+  evaluatedBy String?
+  evaluatedAt DateTime?
+
+  publishedAt DateTime?
+  publishedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registration ExamRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model ExamEligibility {
+  id String @id @default(uuid())
+
+  sessionId String
+
+  studentId   String
+  admissionId String?
+
+  registrationId String? @unique
+
+  status EligibilityStatus @default(PENDING)
+
+  /**
+   * Snapshot of the rule version used during evaluation.
+   */
+  ruleSetId   String
+  ruleVersion Int
+
+  /**
+   * Complete evaluation result.
+   * Example:
+   * {
+   * "payment": {
+   * "required": true,
+   * "percentage": 100,
+   * "passed": true
+   * },
+   * "attendance": {
+   * "minimum": 20,
+   * "passed": true,
+   * "courses": []
+   * },
+   * "theory": {
+   * "passed": true
+   * },
+   * "practical": {
+   * "passed": false
+   * }
+   * }
+   */
+  evaluation Json
+
+  evaluatedAt DateTime?
+
+  evaluatedBy String?
+
+  overrideReason String?
+  overriddenBy   String?
+  overriddenAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  registration ExamRegistration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([admissionId])
+  @@index([sessionId])
+  @@index([ruleSetId])
+  @@index([status])
+}
+
+model Certificate {
+  id String @id @default(uuid())
+
+  schoolId String
+
+  studentId   String
+  admissionId String?
+
+  sessionId String
+
+  certificateNumber String @unique
+
+  certificateType String @default("COURSE_COMPLETION")
+
+  status CertificateStatus @default(NOT_CREATED)
+
+  certificateFee Decimal @default(500) @db.Decimal(10, 2)
+
+  paymentId String?
+
+  createdAt DateTime @default(now())
+  createdBy String?
+
+  readyAt DateTime?
+
+  issuedAt DateTime?
+  issuedBy String?
+
+  receivedAt DateTime?
+  receivedBy String?
+
+  cancelledAt  DateTime?
+  cancelledBy  String?
+  cancelReason String?
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  admission Admission? @relation(fields: [admissionId], references: [id], onDelete: Restrict)
+
+  session ExamSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+
+  @@index([schoolId])
+  @@index([studentId])
+  @@index([admissionId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([paymentId])
+}
+
+model CampusEntry {
+  id String @id @default(uuid())
+
+  schoolId  String
+  studentId String
+
+  registrationNumber String
+
+  scannedAt DateTime @default(now())
+
+  deviceId String?
+  gateName String?
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  attendanceRecords AttendanceRecord[]
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([studentId])
+  @@index([registrationNumber])
+  @@index([scannedAt])
+  @@index([schoolId, scannedAt])
+}
+
+model AttendanceRecord {
+  id String @id @default(uuid())
+
+  schoolId  String
+  studentId String
+
+  courseId String?
+  batchId  String?
+
+  campusEntryId String?
+
+  date DateTime
+
+  status AttendanceStatus @default(PRESENT)
+
+  source AttendanceSource
+
+  remarks String?
+
+  markedById String?
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  batch Batch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  campusEntry CampusEntry? @relation(fields: [campusEntryId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([studentId])
+  @@index([courseId])
+  @@index([batchId])
+  @@index([date])
+  @@index([schoolId, date])
+  @@index([studentId, date])
+  @@index([studentId, courseId, date])
 }
