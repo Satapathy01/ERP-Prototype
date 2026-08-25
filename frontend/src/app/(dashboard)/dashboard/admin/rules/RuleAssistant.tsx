@@ -1,19 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Sparkles, Loader2 } from "lucide-react";
+import {
+  Send,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 
 interface RuleAssistantResponse {
   success: boolean;
-  message: string;
+
+  // Short API status/message
+  message?: string;
+
+  // Human-readable formatted response
+  answer?: string;
+
+  // Updated rules, when a rule was changed
   rules?: Record<string, unknown>;
+
+  // Optional metadata returned by the API
+  type?: string;
 }
 
 export function RuleAssistant() {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] =
+    useState("");
+
+  const [submittedMessage, setSubmittedMessage] =
+    useState("");
+
   const [response, setResponse] =
-    useState<RuleAssistantResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+    useState<RuleAssistantResponse | null>(
+      null,
+    );
+
+  const [loading, setLoading] =
+    useState(false);
 
   async function submit() {
     const text = message.trim();
@@ -22,30 +45,53 @@ export function RuleAssistant() {
 
     setLoading(true);
     setResponse(null);
+    setSubmittedMessage(text);
 
     try {
-      const res = await fetch("/api/admin/rules/ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        "/api/admin/rules/ai",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            message: text,
+          }),
         },
-        body: JSON.stringify({
-          message: text,
-        }),
-      });
+      );
 
-      const data =
-        (await res.json()) as RuleAssistantResponse;
+      let data: RuleAssistantResponse;
+
+      try {
+        data =
+          (await res.json()) as RuleAssistantResponse;
+      } catch {
+        throw new Error(
+          "The rule assistant returned an invalid response.",
+        );
+      }
+
+      if (!res.ok) {
+        throw new Error(
+          data.message ||
+            "Rule assistant request failed.",
+        );
+      }
 
       setResponse(data);
 
       if (data.success) {
         setMessage("");
       }
-    } catch {
+    } catch (error) {
       setResponse({
         success: false,
-        message: "Unable to connect to the rule assistant.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to connect to the rule assistant.",
       });
     } finally {
       setLoading(false);
@@ -64,10 +110,32 @@ export function RuleAssistant() {
     }
   }
 
+  /*
+   * Prefer the formatted answer returned by
+   * the backend.
+   *
+   * Fall back to message for older API
+   * responses or error responses.
+   */
+  function getAssistantAnswer() {
+    if (response?.answer?.trim()) {
+      return response.answer;
+    }
+
+    if (response?.message?.trim()) {
+      return response.message;
+    }
+
+    return "The rule assistant completed the request, but no response text was returned.";
+  }
+
   return (
-    <div className="min-h-[600px] rounded-2xl border bg-white shadow-sm">
-      <div className="flex min-h-[600px] flex-col">
-        {/* Header */}
+    <div className="min-h-150 rounded-2xl border bg-white shadow-sm">
+      <div className="flex min-h-150 flex-col">
+        {/* ---------------------------------------------------------------- */}
+        {/* Header                                                           */}
+        {/* ---------------------------------------------------------------- */}
+
         <div className="border-b px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
@@ -86,23 +154,27 @@ export function RuleAssistant() {
           </div>
         </div>
 
-        {/* Conversation */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Conversation                                                     */}
+        {/* ---------------------------------------------------------------- */}
+
         <div className="flex-1 overflow-y-auto p-6">
-          {!response && (
-            <div className="flex min-h-[400px] items-center justify-center">
+          {!response && !loading && (
+            <div className="flex min-h-100 items-center justify-center">
               <div className="max-w-2xl text-center">
                 <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50">
                   <Sparkles className="h-8 w-8 text-orange-500" />
                 </div>
 
                 <h2 className="text-3xl font-semibold tracking-tight">
-                  Hello Admin, Let's change Rules
+                  Hello Admin, Let&apos;s change Rules
                 </h2>
 
                 <p className="mt-3 text-muted-foreground">
-                  Tell me how you want the examination
-                  rules to work. I will convert your
-                  instruction into an examination rule.
+                  Tell me how you want the
+                  examination rules to work. I
+                  will convert your instruction
+                  into an examination rule.
                 </p>
 
                 <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
@@ -146,17 +218,37 @@ export function RuleAssistant() {
             </div>
           )}
 
+          {loading && (
+            <div className="flex min-h-100 items-center justify-center">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+
+                <span>
+                  Rule Assistant is thinking...
+                </span>
+              </div>
+            </div>
+          )}
+
           {response && (
             <div className="mx-auto max-w-3xl space-y-6">
+              {/* ---------------------------------------------------------- */}
+              {/* User message                                               */}
+              {/* ---------------------------------------------------------- */}
+
               <div className="rounded-2xl border bg-muted/30 p-5">
                 <p className="text-sm font-medium text-muted-foreground">
                   You
                 </p>
 
-                <p className="mt-2">
-                  {message || "Rule update"}
+                <p className="mt-2 whitespace-pre-wrap">
+                  {submittedMessage}
                 </p>
               </div>
+
+              {/* ---------------------------------------------------------- */}
+              {/* Assistant answer                                            */}
+              {/* ---------------------------------------------------------- */}
 
               <div
                 className={`rounded-2xl border p-5 ${
@@ -173,10 +265,14 @@ export function RuleAssistant() {
                   </p>
                 </div>
 
-                <p className="mt-3 text-sm">
-                  {response.message}
-                </p>
+                <div className="mt-4 whitespace-pre-wrap text-sm leading-6">
+                  {getAssistantAnswer()}
+                </div>
               </div>
+
+              {/* ---------------------------------------------------------- */}
+              {/* Updated rule JSON                                           */}
+              {/* ---------------------------------------------------------- */}
 
               {response.rules && (
                 <div className="rounded-2xl border bg-white p-5">
@@ -184,7 +280,7 @@ export function RuleAssistant() {
                     Updated Rule Set
                   </p>
 
-                  <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-white">
+                  <pre className="mt-4 max-h-125 overflow-auto rounded-lg bg-zinc-950 p-4 text-sm text-white">
                     {JSON.stringify(
                       response.rules,
                       null,
@@ -197,7 +293,10 @@ export function RuleAssistant() {
           )}
         </div>
 
-        {/* Input */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Input                                                            */}
+        {/* ---------------------------------------------------------------- */}
+
         <div className="border-t p-4">
           <div className="mx-auto flex max-w-4xl items-end gap-3 rounded-2xl border bg-white p-2 shadow-sm">
             <textarea
@@ -229,7 +328,8 @@ export function RuleAssistant() {
           </div>
 
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Press Enter to send · Shift + Enter for a new line
+            Press Enter to send · Shift + Enter
+            for a new line
           </p>
         </div>
       </div>

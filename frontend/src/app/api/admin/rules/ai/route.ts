@@ -157,6 +157,65 @@ function isHelpRequest(
   );
 }
 
+function isRuleReadRequest(
+  message: string,
+): boolean {
+  const normalized =
+    message
+      .toLowerCase()
+      .trim()
+      .replace(/[?!.]+$/g, "");
+
+  const readPatterns = [
+    "what are the current examination rules",
+    "what are the current exam rules",
+    "what are the current rules",
+    "what are the examination rules",
+    "what are the exam rules",
+    "what are the rules",
+
+    "show me the current examination rules",
+    "show me the current exam rules",
+    "show me the current rules",
+    "show current examination rules",
+    "show current exam rules",
+    "show current rules",
+
+    "tell me the current examination rules",
+    "tell me the current exam rules",
+    "tell me the current rules",
+    "tell me the examination rules",
+    "tell me the exam rules",
+
+    "what is the current attendance requirement",
+    "what is the attendance requirement",
+    "what is the minimum attendance",
+    "how much attendance is required",
+    "is attendance required",
+
+    "what is the payment requirement",
+    "what is the minimum payment",
+    "how much payment is required",
+
+    "is theory examination required",
+    "is theory examination compulsory",
+    "is theory compulsory",
+
+    "is practical examination required",
+    "is practical examination compulsory",
+    "is practical compulsory",
+
+    "what is the certificate fee",
+    "how much is the certificate fee",
+  ];
+
+  return readPatterns.some(
+    (pattern) =>
+      normalized === pattern ||
+      normalized.includes(pattern),
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                   POST                                     */
 /* -------------------------------------------------------------------------- */
@@ -222,6 +281,46 @@ export async function POST(
             activeRuleSet.rules,
           )
         : DEFAULT_EXAM_RULES;
+    
+    /* ---------------------------------------------------------------------- */
+/* Read Current Rules                                                     */
+/* ---------------------------------------------------------------------- */
+
+if (isRuleReadRequest(userMessage)) {
+  const answer =
+    formatExamRulesResponse(
+      currentRules,
+    );
+
+  return NextResponse.json({
+    success: true,
+
+    type: "rule-read",
+
+    message:
+      "Current examination rules.",
+
+    answer,
+
+    rules: currentRules,
+
+    ruleSet: activeRuleSet
+      ? {
+          id:
+            activeRuleSet.id,
+
+          name:
+            activeRuleSet.name,
+
+          version:
+            activeRuleSet.version,
+
+          isActive:
+            activeRuleSet.isActive,
+        }
+      : null,
+  });
+}
 
     /* ---------------------------------------------------------------------- */
     /* Ask Qwen                                                               */
@@ -434,12 +533,14 @@ Return ONLY the updated JSON object.
     /* Activate New Version                                                   */
     /* ---------------------------------------------------------------------- */
 
-    const activatedRuleSet = await examRulesService.activate(
+    const activatedRuleSet =
+  await examRulesService.activate(
     ruleSet.id,
   );
-  
-  const answer =formatExamRulesResponse(
-    validatedRules,
+
+const answer =
+  formatExamRulesResponse(
+    finalRules,
   );
     /* ---------------------------------------------------------------------- */
     /* Response                                                               */
