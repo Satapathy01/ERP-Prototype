@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export default async function CertificatePage() {
-  const schoolId = process.env.DEFAULT_SCHOOL_ID;
+  const schoolId = process.env.SCHOOL_ID;
 
   if (!schoolId) {
     return (

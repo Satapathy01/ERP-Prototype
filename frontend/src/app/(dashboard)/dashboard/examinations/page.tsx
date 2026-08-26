@@ -203,7 +203,7 @@ export default function ExaminationsPage() {
             icon={ListChecks}
             title="Examination Rules"
             description="Configure grading, eligibility, theory, practical, and certificate rules."
-            href="/dashboard/examinations/rules"
+            href="/dashboard/admin/rules"
           />
         </div>
       </section>
@@ -214,7 +214,7 @@ export default function ExaminationsPage() {
 
       <section className="grid gap-4 md:grid-cols-2">
         <Link
-          href="/dashboard/examinations/rules"
+          href="/dashboard/admin/rules"
           className="rounded-xl border bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div className="flex items-start gap-4">

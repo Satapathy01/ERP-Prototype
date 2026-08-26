@@ -1,4 +1,4 @@
-import { RuleAssistant } from "src/app/(dashboard)/dashboard/admin/rules/RuleAssistant";
+import { RuleAssistant } from "./RuleAssistant";
 
 export default function RulesPage() {
   return (

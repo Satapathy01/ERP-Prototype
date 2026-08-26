@@ -10,7 +10,7 @@ export default async function EligibilityPage() {
    *
    * Do NOT hard-code a school ID in production.
    */
-  const schoolId = process.env.DEFAULT_SCHOOL_ID;
+  const schoolId = process.env.SCHOOL_ID;
 
   if (!schoolId) {
     return (

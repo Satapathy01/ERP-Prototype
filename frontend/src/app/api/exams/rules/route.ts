@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getCurrentUser } from "~/modules/auth/current-user";
+
 import {
   examRulesService,
 } from "@/modules/exams/rules/exam-rules.service";
@@ -8,17 +10,27 @@ export async function GET(
   request: NextRequest,
 ) {
   try {
-    const { searchParams } =
-      new URL(request.url);
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
 
     const schoolId =
-      searchParams.get("schoolId");
+      user.schoolId;
 
     if (!schoolId) {
       return NextResponse.json(
         {
           success: false,
-          message: "School ID is required.",
+          message:
+            "School ID is missing from authentication.",
         },
         { status: 400 },
       );
@@ -56,26 +68,41 @@ export async function POST(
   request: NextRequest,
 ) {
   try {
-    const body =
-      await request.json();
+    const user = await getCurrentUser();
 
-    const {
-      schoolId,
-      name,
-      description,
-      rules,
-      createdBy,
-    } = body;
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
+    const schoolId =
+      user.schoolId;
 
     if (!schoolId) {
       return NextResponse.json(
         {
           success: false,
-          message: "School ID is required.",
+          message:
+            "School ID is missing from authentication.",
         },
         { status: 400 },
       );
     }
+
+    const body =
+      await request.json();
+
+    const {
+      name,
+      description,
+      rules,
+      createdBy,
+    } = body;
 
     if (!name?.trim()) {
       return NextResponse.json(
@@ -91,11 +118,19 @@ export async function POST(
     const ruleSet =
       await examRulesService.create({
         schoolId,
-        name: name.trim(),
+
+        name:
+          name.trim(),
+
         description:
-          description?.trim() || undefined,
+          description?.trim() ||
+          undefined,
+
         rules,
-        createdBy,
+
+        createdBy:
+          createdBy ||
+          user.id,
       });
 
     return NextResponse.json(
