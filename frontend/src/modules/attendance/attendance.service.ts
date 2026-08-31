@@ -56,11 +56,29 @@ export const attendanceService = {
     courseId: string,
     batchId: string,
     date: Date,
+    sectionType?: "THEORY" | "PRACTICAL",
   ) {
     return attendanceRepository.getDailyAttendance(
       schoolId,
       courseId,
       batchId,
+      sectionType,
+      date,
+    );
+  },
+
+  async getBatchStudents(
+    schoolId: string,
+    courseId: string,
+    batchId: string,
+    sectionType?: "THEORY" | "PRACTICAL",
+    date?: Date,
+  ) {
+    return attendanceRepository.getBatchStudents(
+      schoolId,
+      courseId,
+      batchId,
+      sectionType,
       date,
     );
   },
@@ -75,6 +93,7 @@ export const attendanceService = {
       studentId?: string;
       courseId?: string;
       batchId?: string;
+      sectionType?: "THEORY" | "PRACTICAL";
       from?: Date;
       to?: Date;
     },
@@ -83,6 +102,10 @@ export const attendanceService = {
       schoolId,
       options,
     );
+  },
+
+  async getDashboardSummary(schoolId: string) {
+    return attendanceRepository.getDashboardSummary(schoolId);
   },
 
   /* ------------------------------------------------------------------------ */
