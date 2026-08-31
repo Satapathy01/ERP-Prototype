@@ -87,30 +87,24 @@ export default function FeeSchedule({
   ];
 
   function toggle(id: string) {
-    if (paidItems.includes(id)) {
-      return;
-    }
-
-    setSelected((previous) => {
-      const next = previous.includes(id)
-        ? previous.filter(
-            (itemId) => itemId !== id,
-          )
-        : [...previous, id];
-
-      /*
-       * Calculate the selected fee items from
-       * the current fee schedule.
-       */
-      const selectedItems = feeItems.filter(
-        (item) => next.includes(item.id),
-      );
-
-      onSelectionChange?.(selectedItems);
-
-      return next;
-    });
+  if (paidItems.includes(id)) {
+    return;
   }
+
+  const next = selected.includes(id)
+    ? selected.filter(
+        (itemId) => itemId !== id,
+      )
+    : [...selected, id];
+
+  setSelected(next);
+
+  const selectedItems = feeItems.filter(
+    (item) => next.includes(item.id),
+  );
+
+  onSelectionChange?.(selectedItems);
+}
 
   return (
     <div className="space-y-3">
