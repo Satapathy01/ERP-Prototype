@@ -2,9 +2,9 @@ import { BatchStatus, BatchShift } from "@prisma/client";
 import { z } from "zod";
 
 export const createBatchSchema = z.object({
-  courseId: z.string().cuid("Invalid course."),
+  courseId: z.string().uuid("Invalid course."),
 
-  teacherId: z.string().cuid("Invalid teacher."),
+  teacherId: z.string().uuid("Invalid teacher."),
 
   name: z
     .string()
@@ -14,9 +14,13 @@ export const createBatchSchema = z.object({
 
   shift: z.nativeEnum(BatchShift),
 
-  startTime: z.string().min(1, "Start time is required."),
+  startTime: z
+    .string()
+    .min(1, "Start time is required."),
 
-  endTime: z.string().min(1, "End time is required."),
+  endTime: z
+    .string()
+    .min(1, "End time is required."),
 
   capacity: z
     .number()

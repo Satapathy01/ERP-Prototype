@@ -28,8 +28,9 @@ interface StudentDialogProps {
 }
 
 export default function StudentDialog({
-  schoolId,
+   schoolId,
   student,
+  courseId,
   trigger,
 }: StudentDialogProps) {
   const [open, setOpen] = useState(false);
@@ -97,15 +98,15 @@ export default function StudentDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button>
+          <Button type="button">
             <Plus className="mr-2 h-4 w-4" />
             Create Student
           </Button>
         )}
       </DialogTrigger>
 
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle>
             {student ? "Edit Student" : "Create Student"}
           </DialogTitle>

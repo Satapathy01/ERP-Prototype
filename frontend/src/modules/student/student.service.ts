@@ -133,8 +133,13 @@ export async function getStudentById(id: string) {
 export async function createStudent(
   schoolId: string,
   data: CreateStudentInput
-) {
-  return prisma.$transaction(async (tx) => {
+)
+  {
+  if (!data.courseId) {
+    throw new Error("Please select a course.");
+  }
+  return prisma.$transaction(
+    async (tx) => {
     // --------------------------------------------------
     // Find selected course
     // --------------------------------------------------
@@ -251,7 +256,16 @@ export async function createStudent(
       admission,
       course,
     };
-  });
+   },
+    {
+      // Give Prisma more time to obtain a connection
+      // before giving up on starting the transaction.
+      maxWait: 10000,
+
+      // Give the transaction more time to finish.
+      timeout: 20000,
+    }
+  );
 }
 
 export async function updateStudent(

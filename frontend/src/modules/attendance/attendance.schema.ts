@@ -102,6 +102,11 @@ export const classAttendanceSchema =
 
     batchId: z.string().uuid(),
 
+    sectionType: z.enum([
+      "THEORY",
+      "PRACTICAL",
+    ]),
+
     date: z.coerce.date(),
 
     records: z

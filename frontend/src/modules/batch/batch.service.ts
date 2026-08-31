@@ -158,7 +158,8 @@ export async function createBatch(
   schoolId: string,
   data: CreateBatchInput
 ) {
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(
+    async (tx) => {
     const teacher = await tx.teacher.findFirst({
   where: {
     id: data.teacherId,
@@ -286,7 +287,7 @@ export async function updateBatch(
       );
     }
 
-    return tx.batch.update({
+     return tx.batch.update({
       where: {
         id,
       },
@@ -305,7 +306,11 @@ export async function updateBatch(
         course: true,
       },
     });
-  });
+  },
+  {
+    maxWait: 10000,
+    timeout: 20000,
+  } );
 }
 export async function deleteBatch(id: string) {
   return prisma.$transaction(async (tx) => {

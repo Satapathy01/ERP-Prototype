@@ -2,8 +2,6 @@
 
 import { useState, useTransition } from "react";
 
-import type { Course } from "@prisma/client";
-
 import {
   Dialog,
   DialogContent,
@@ -19,12 +17,34 @@ import CourseForm from "./CourseForm";
 import { createCourse } from "@/modules/courses/actions/create-course";
 import { updateCourse } from "@/modules/courses/actions/update-course";
 import { toast } from "sonner";
+
 import type { CourseSchema } from "@/modules/courses/actions/schemas/course.schema";
 
+type SerializableCourse = {
+  id: string;
+  schoolId: string;
+  code: string;
+  name: string;
+
+  durationMonths: number;
+  theoryDurationDays: number;
+  practicalDurationDays: number;
+
+  admissionFee: number;
+  monthlyFee: number;
+  certificateFee: number;
+  totalFee: number;
+
+  installmentCount: number;
+  isActive: boolean;
+
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 interface CourseDialogProps {
   schoolId: string;
-  course?: Course;
+  course?: SerializableCourse;
   trigger?: React.ReactNode;
 }
 
@@ -44,12 +64,12 @@ export default function CourseDialog({
         ? await updateCourse(course.id, schoolId, values)
         : await createCourse(schoolId, values);
 
-     if (result.success) {
-  toast.success(result.message);
-  setOpen(false);
-} else {
-  toast.error(result.message);
-}
+      if (result.success) {
+        toast.success(result.message);
+        setOpen(false);
+      } else {
+        toast.error(result.message);
+      }
     });
   }
 
@@ -57,7 +77,7 @@ export default function CourseDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button>
+          <Button type="button">
             {isEdit ? "Edit Course" : "Add Course"}
           </Button>
         )}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { Gender, StudentStatus } from "@prisma/client";
 
 export const createStudentSchema = z.object({
@@ -20,9 +21,13 @@ export const createStudentSchema = z.object({
     .max(100, "Mother Name is too long")
     .optional(),
 
-  gender: z.nativeEnum(Gender).optional(),
+  gender: z
+    .nativeEnum(Gender)
+    .optional(),
 
-  dateOfBirth: z.string().optional(),
+  dateOfBirth: z
+    .string()
+    .optional(),
 
   bloodGroup: z
     .string()
@@ -84,13 +89,15 @@ export const createStudentSchema = z.object({
     .trim()
     .optional(),
 
-  status: z.nativeEnum(StudentStatus),
-
-  // NEW
+  status: z
+    .nativeEnum(StudentStatus),
+  
   courseId: z
     .string()
-    .uuid("Please select a valid course"),
+    .uuid("Please select a valid course")
+    .optional(),
 });
 
-export type CreateStudentInput =
-  z.infer<typeof createStudentSchema>;
+export type CreateStudentInput = z.infer<
+  typeof createStudentSchema
+>;

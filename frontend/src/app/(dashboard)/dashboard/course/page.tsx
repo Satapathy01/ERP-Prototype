@@ -1,12 +1,33 @@
 import CourseDialog from "@/components/course/CourseDialog";
 import CourseTable from "@/components/course/CourseTable";
+
 import { courseService } from "@/modules/courses/actions/services/course.service";
+import { getAuthenticationUser } from "~/modules/auth/auth.helper";
 
 export default async function CoursePage() {
-  // TODO: Replace with authenticated schoolId
-  const schoolId = "e448f8be-1387-40ee-8eac-63892fe51611";
+  const user = await getAuthenticationUser();
 
-  const courses = await courseService.getAll(schoolId);
+  if (!user) {
+    return (
+      <div className="p-6">
+        Unauthorized
+      </div>
+    );
+  }
+
+  const schoolId = user.schoolId;
+
+  const courses = await courseService.getAll(
+    schoolId
+  );
+
+  const safeCourses = courses.map((course) => ({
+    ...course,
+    admissionFee: Number(course.admissionFee),
+    monthlyFee: Number(course.monthlyFee),
+    certificateFee: Number(course.certificateFee),
+    totalFee: Number(course.totalFee),
+  }));
 
   return (
     <div className="space-y-6">
@@ -21,12 +42,14 @@ export default async function CoursePage() {
           </p>
         </div>
 
-        <CourseDialog schoolId={schoolId} />
+        <CourseDialog
+          schoolId={schoolId}
+        />
       </div>
 
       <CourseTable
         schoolId={schoolId}
-        courses={courses}
+        courses={safeCourses}
       />
     </div>
   );

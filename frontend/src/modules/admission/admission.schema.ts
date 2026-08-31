@@ -1,21 +1,23 @@
 import { z } from "zod";
 
 export const createAdmissionSchema = z.object({
-  studentId: z
+    studentId: z
     .string()
-    .cuid("Invalid student ID"),
+    .uuid("Invalid student ID"),
 
   schoolId: z
     .string()
-    .cuid("Invalid school ID"),
+    .uuid("Invalid school ID"),
 
   courseId: z
     .string()
-    .cuid("Invalid course ID"),
+    .uuid("Invalid course ID"),
 
   batchId: z
     .string()
-    .cuid("Invalid batch ID"),
+    .uuid("Invalid batch ID")
+    .nullable()
+    .optional(),
 
   admissionDate: z.coerce.date(),
 
