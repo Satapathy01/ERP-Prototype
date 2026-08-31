@@ -1,19 +1,13 @@
-﻿export default function AcademicClassPage() {
-  return (
-    <main className="space-y-6 p-6">
-      <div>
-        <p className="text-sm font-medium text-orange-500">
-          Academics
-        </p>
+import { AttendanceWorkspace } from "@/components/attendance/AttendanceWorkspace";
 
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Classes
-        </h1>
-
-        <p className="mt-2 text-muted-foreground">
-          Manage academic classes and class information.
-        </p>
-      </div>
-    </main>
-  );
+export default function ClassAttendancePage() {
+	return (
+		<main className="space-y-6 p-6">
+			<h1 className="text-2xl font-bold">Class Attendance</h1>
+			<p className="text-muted-foreground">
+				Class attendance is recorded separately for each batch section.
+			</p>
+			<AttendanceWorkspace />
+		</main>
+	);
 }

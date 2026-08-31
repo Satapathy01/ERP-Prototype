@@ -1,19 +1,13 @@
-﻿export default function AcademicHistoryPage() {
-  return (
-    <main className="space-y-6 p-6">
-      <div>
-        <p className="text-sm font-medium text-orange-500">
-          Academics
-        </p>
+import { AttendanceHistoryWorkspace } from "@/components/attendance/AttendanceHistoryWorkspace";
 
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Academic History
-        </h1>
-
-        <p className="mt-2 text-muted-foreground">
-          View academic history and records.
-        </p>
-      </div>
-    </main>
-  );
+export default function AttendanceHistoryPage() {
+	return (
+		<main className="space-y-4 p-6">
+			<h1 className="text-2xl font-bold">Attendance History</h1>
+			<p className="text-muted-foreground">
+				Filter records by course, batch, section, date, or student.
+			</p>
+			<AttendanceHistoryWorkspace />
+		</main>
+	);
 }

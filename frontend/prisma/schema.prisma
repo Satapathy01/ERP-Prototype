@@ -168,6 +168,7 @@ model User {
 
   importJobs  ImportJob[]
   resetTokens PasswordResetToken[]
+  teacherProfile Teacher?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -312,6 +313,9 @@ model Course {
 
   durationMonths Int @default(1)
 
+  theoryDurationDays    Int @default(0)
+  practicalDurationDays Int @default(0)
+
   admissionFee   Decimal @default(0) @db.Decimal(10, 2)
   monthlyFee     Decimal @default(0) @db.Decimal(10, 2)
   certificateFee Decimal @default(0) @db.Decimal(10, 2)
@@ -368,10 +372,14 @@ model Teacher {
 
   employeeCode String?
 
+  userId String? @unique
+
   status TeacherStatus @default(ACTIVE)
   type   TeacherType   @default(FULL_TIME)
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   batches Batch[]
 
@@ -466,6 +474,11 @@ enum AttendanceSource {
   MANUAL
   CLASS
   CAMPUS_SCAN
+}
+
+enum AttendanceSectionType {
+  THEORY
+  PRACTICAL
 }
 
 model Batch {
@@ -1093,6 +1106,8 @@ model AttendanceRecord {
   courseId String?
   batchId  String?
 
+  sectionType AttendanceSectionType?
+
   campusEntryId String?
 
   date DateTime
@@ -1126,4 +1141,5 @@ model AttendanceRecord {
   @@index([schoolId, date])
   @@index([studentId, date])
   @@index([studentId, courseId, date])
+  @@index([batchId, sectionType, date])
 }

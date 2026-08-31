@@ -1,19 +1,10 @@
-﻿export default function AcademicScanPage() {
-  return (
-    <main className="space-y-6 p-6">
-      <div>
-        <p className="text-sm font-medium text-orange-500">
-          Academics
-        </p>
-
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Attendance Scan
-        </h1>
-
-        <p className="mt-2 text-muted-foreground">
-          Scan and record student attendance.
-        </p>
-      </div>
-    </main>
-  );
+export default function AttendanceScanPage() {
+	return (
+		<main className="space-y-4 p-6">
+			<h1 className="text-2xl font-bold">Attendance Scan</h1>
+			<p className="text-muted-foreground">
+				Choose the course, batch, and section before scanning a student barcode.
+			</p>
+		</main>
+	);
 }
