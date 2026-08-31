@@ -59,10 +59,6 @@ export default function GraduationPage() {
   const [error, setError] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    void loadSessions();
-    void loadStudents();
-  }, []);
 
   async function loadSessions() {
     try {
@@ -109,7 +105,7 @@ export default function GraduationPage() {
             "Failed to load students.",
         );
       }
-
+    
       /*
        * Support both:
        *
@@ -136,6 +132,16 @@ export default function GraduationPage() {
       setLoadingStudents(false);
     }
   }
+    useEffect(() => {
+  const timer = window.setTimeout(() => {
+    void loadSessions();
+    void loadStudents();
+  }, 0);
+
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, []);
 
   async function evaluateGraduation() {
     if (!sessionId || !studentId) {

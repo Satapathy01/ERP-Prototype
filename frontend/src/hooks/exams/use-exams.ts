@@ -304,10 +304,15 @@ export function useExams(
     [fetchExams],
   );
 
-  useEffect(() => {
+useEffect(() => {
+  const timer = window.setTimeout(() => {
     void fetchExams();
-  }, [fetchExams]);
+  }, 0);
 
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, [fetchExams]);
   return {
     exams,
 

@@ -84,9 +84,7 @@ export default function RegistrationPage() {
   const [error, setError] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
+
 
   async function loadSessions() {
     try {
@@ -124,6 +122,15 @@ const data =
       setLoading(false);
     }
   }
+    useEffect(() => {
+  const timer = window.setTimeout(() => {
+    void loadSessions();
+  }, 0);
+
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, []);
 
   async function loadRegistrations(
     selectedSessionId: string,

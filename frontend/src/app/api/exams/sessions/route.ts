@@ -16,9 +16,7 @@ import { SCHOOL_ID } from "@/lib/school";
  *
  * SCHOOL_ID in .env
  */
-export async function GET(
-  _request: NextRequest,
-) {
+export async function GET() {
   try {
     const sessions =
       await examSessionService.getAll(

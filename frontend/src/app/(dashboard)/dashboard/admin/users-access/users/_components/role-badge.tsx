@@ -1,20 +1,15 @@
-import { UserRole } from "@prisma/client";
+﻿import { Badge } from "@/components/ui/badge";
 
-import { Badge } from "~/components/ui/badge";
+interface RoleBadgeProps {
+  role: string;
+}
 
-type Props = {
-  role: UserRole;
-};
-
-export function RoleBadge({ role }: Props) {
-  switch (role) {
-    case UserRole.ADMIN:
-      return <Badge variant="destructive">Admin</Badge>;
-
-    case UserRole.STAFF:
-      return <Badge>Staff</Badge>;
-
-    default:
-      return <Badge>{role}</Badge>;
-  }
+export function RoleBadge({
+  role,
+}: RoleBadgeProps) {
+  return (
+    <Badge variant="secondary">
+      {role}
+    </Badge>
+  );
 }

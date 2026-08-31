@@ -537,11 +537,6 @@ Return ONLY the updated JSON object.
   await examRulesService.activate(
     ruleSet.id,
   );
-
-const answer =
-  formatExamRulesResponse(
-    finalRules,
-  );
     /* ---------------------------------------------------------------------- */
     /* Response                                                               */
     /* ---------------------------------------------------------------------- */

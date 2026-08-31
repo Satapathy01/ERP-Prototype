@@ -91,10 +91,15 @@ export function useGraduation(
     }
   }, [studentId, sessionId]);
 
-  useEffect(() => {
+useEffect(() => {
+  const timer = window.setTimeout(() => {
     void evaluate();
-  }, [evaluate]);
+  }, 0);
 
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, [evaluate]);
   return {
     graduation,
     loading,

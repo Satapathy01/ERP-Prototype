@@ -224,9 +224,15 @@ export function useExamRules(
       [updateRuleSet],
     );
 
-  useEffect(() => {
+useEffect(() => {
+  const timer = window.setTimeout(() => {
     void fetchRules();
-  }, [fetchRules]);
+  }, 0);
+
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, [fetchRules]);
 
   return {
     rules,

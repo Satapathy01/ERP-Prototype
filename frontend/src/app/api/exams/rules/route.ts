@@ -6,9 +6,7 @@ import {
   examRulesService,
 } from "@/modules/exams/rules/exam-rules.service";
 
-export async function GET(
-  request: NextRequest,
-) {
+export async function GET() {
   try {
     const user = await getCurrentUser();
 

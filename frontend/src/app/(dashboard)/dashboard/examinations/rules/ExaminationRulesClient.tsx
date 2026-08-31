@@ -74,9 +74,6 @@ export default function ExaminationRulesClient() {
   const [error, setError] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    loadRules();
-  }, []);
 
   async function loadRules() {
     try {
@@ -111,6 +108,15 @@ export default function ExaminationRulesClient() {
       setLoading(false);
     }
   }
+  useEffect(() => {
+  const timer = window.setTimeout(() => {
+    void loadRules();
+  }, 0);
+
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, []);
 
   const activeRuleSet = useMemo(
     () =>
@@ -386,21 +392,24 @@ function ActiveRuleCard({
         />
 
         <RuleCard
-          icon={
-            <FileCheck2 className="size-5" />
-          }
-          title="Certificate"
-          value={
-            rules.certificate?.required
-              ? "Required"
-              : "Not required"
-          }
-          detail={
-            rules.certificate?.required
-              ? `Fee: ₹${rules.certificate.fee ?? 0}`
-              : undefined
-          }
-        />
+  icon={
+    <FileCheck2 className="size-5" />
+  }
+  title="Certificate"
+  value={
+    rules.certificate?.required
+      ? "Required"
+      : "Not required"
+  }
+  detail={
+  rules.certificate?.required ? (
+    <span className="inline-flex items-center gap-1">
+      <IndianRupee className="size-3.5" />
+      {rules.certificate.fee ?? 0}
+    </span>
+  ) : undefined
+}
+/>
 
         <RuleCard
           icon={
@@ -428,7 +437,7 @@ function RuleCard({
   icon: React.ReactNode;
   title: string;
   value: string;
-  detail?: string;
+  detail?: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border p-5 transition hover:shadow-sm">

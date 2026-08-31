@@ -19,8 +19,7 @@ export function BarcodeScanner({
   loading = false,
   onScan,
 }: BarcodeScannerProps) {
-  const [value, setValue] =
-    useState("");
+  const [value, setValue] = useState("");
 
   const inputRef =
     useRef<HTMLInputElement>(null);
@@ -29,9 +28,7 @@ export function BarcodeScanner({
     inputRef.current?.focus();
   }, []);
 
-  function handleSubmit(
-    event: FormEvent,
-  ) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
     const registrationNumber =
@@ -51,14 +48,14 @@ export function BarcodeScanner({
   }
 
   return (
-    <div className="rounded-xl border bg-white p-6">
-      <div className="mb-6">
+    <div className="space-y-4">
+      <div>
         <h2 className="text-lg font-semibold">
           Campus Entry Scanner
         </h2>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Scan the student's registration
+          Scan the student&apos;s registration
           barcode when they enter the campus.
         </p>
       </div>
@@ -105,7 +102,7 @@ export function BarcodeScanner({
         </strong>{" "}
         Most USB barcode scanners behave like
         a keyboard. Place the cursor in the
-        registration field and scan the student's
+        registration field and scan the student&apos;s
         barcode.
       </div>
     </div>

@@ -263,10 +263,15 @@ export function useExamSessions(
     [fetchSessions],
   );
 
-  useEffect(() => {
+useEffect(() => {
+  const timer = window.setTimeout(() => {
     void fetchSessions();
-  }, [fetchSessions]);
+  }, 0);
 
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, [fetchSessions]);
   return {
     sessions,
 

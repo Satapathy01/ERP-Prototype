@@ -5,7 +5,6 @@ import type {
   ResultStatus,
   EligibilityStatus,
   ExamSessionStatus,
-  CertificateStatus,
 } from "@prisma/client";
 
 /**
